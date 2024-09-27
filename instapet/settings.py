@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'API.apps.ApiConfig',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    "corsheaders"
+    "corsheaders",
 ]
 
 AUTH_USER_MODEL = "API.User"
@@ -159,3 +159,11 @@ REST_FRAMEWORK = {
 
 # CORS
 CORS_ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS").split(",")
+
+# Emai
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv("EMAIL")
+EMAIL_HOST_PASSWORD = os.getenv("MAIL_PASSWORD")

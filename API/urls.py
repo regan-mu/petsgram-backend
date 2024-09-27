@@ -20,5 +20,7 @@ urlpatterns = [
     path("unfollow/<int:pk>", views.UnFollowUserAPIView.as_view(), name="unfollow_user"),
 
     path("token", TokenObtainPairView.as_view(), name="auth_token"),
-    path("token/refresh", TokenRefreshView.as_view(), name="refresh_token")
+    path("token/refresh", TokenRefreshView.as_view(), name="refresh_token"),
+    path("request-reset", views.RequestPasswordReset.as_view(), name="request_password_reset"),
+    path("reset-password", views.ResetPasswordAPIView.as_view(), name="reset_password")
 ]

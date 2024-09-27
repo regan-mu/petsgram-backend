@@ -2,9 +2,17 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import ValidationError
-from .models import User, Post, Comment, Like, Follow
-from .serializers import UserSerializer, PostSerializer, UpdateUserSerializer, CommentSerializer, LikeSerializer, FollowSerializer, SimpleUserSerializer, UpdateAvatarSerializer
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import smart_str, smart_bytes, DjangoUnicodeDecodeError
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+import os
+from .utils import Util
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
+from .models import User, Post, Comment, Like, Follow
+from .serializers import (UserSerializer, PostSerializer, UpdateUserSerializer, CommentSerializer, 
+                          LikeSerializer, FollowSerializer, SimpleUserSerializer, UpdateAvatarSerializer,
+                          ResetPasswordSerializer, NewPasswordSerializer
+)
 
 # Create your views here.
 
@@ -169,7 +177,27 @@ class UnFollowUserAPIView(generics.DestroyAPIView):
 
         return obj
 
-    # Test the unfollow logic
-    # Than start the frontend
-    
 
+class RequestPasswordReset(generics.GenericAPIView):
+    serializer_class = ResetPasswordSerializer
+    def post(self, request):
+        email = request.data.get('email', "")
+
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email=email)
+            uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
+            token = PasswordResetTokenGenerator().make_token(user)
+            email_body = f'Hello, \n Use link below to reset your password  \n {os.getenv("RESET_PASSWORD_URL")}{uidb64}/{token}'
+            data = {"body": email_body, "subject": "Reset passsword", "recipient": user.email}
+            Util.send_mail(data=data)
+
+            return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+        
+
+class ResetPasswordAPIView(generics.GenericAPIView):
+    serializer_class = NewPasswordSerializer
+
+    def patch(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'detail': "Success"}, status=status.HTTP_200_OK)
